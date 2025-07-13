@@ -1,71 +1,73 @@
-import { earthMesh } from './earth.js';
+/* earth.js – accurate, clickable Earth with landmasses
+   Copyright (c) 2025 Sherwin Marcelle, MIT License */
 
-const gameCountries = [
-  {name:"Trinidad and Tobago", lat:10.69, lon:-61.22},
-  {name:"France",      lat:46.2,  lon:2.2},
-  {name:"Brazil",      lat:-14.2, lon:-51.9},
-  {name:"Japan",       lat:36.2,  lon:138.2},
-  {name:"Kenya",       lat:-0.02, lon:37.9},
-  {name:"Canada",      lat:56.1,  lon:-106.3},
-  {name:"Australia",   lat:-25.2, lon:133.7}
-];
+import * as THREE from '../libs/three.js';
+import { OrbitControls } from '../libs/OrbitControls.js';
+import { buildEarthMesh } from './countries.js';
 
-let currentGame = null;
+/* ---------- Scene setup ---------- */
+const scene    = new THREE.Scene();
+const camera   = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+camera.position.set(0, 0, 6);
 
-/* Simple mapping lat/lon → 3-D point */
-function latLonToVector3(lat, lon) {
-  const phi   = (90 - lat) * Math.PI / 180;
-  const theta = (lon + 180) * Math.PI / 180;
-  const x = -(Math.sin(phi) * Math.cos(theta));
-  const z =  (Math.sin(phi) * Math.sin(theta));
-  const y =  Math.cos(phi);
-  return new THREE.Vector3(x, y, z).multiplyScalar(2);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.minDistance = 3;
+controls.maxDistance = 15;
+
+/* ---------- Earth mesh (async) ---------- */
+const EARTH_RADIUS = 2;
+let earthGroup = new THREE.Group();  // will hold land + ocean
+scene.add(earthGroup);
+
+buildEarthMesh(EARTH_RADIUS).then(group => {
+  earthGroup.add(group);
+});
+
+/* ---------- Cloud layer ---------- */
+const cloudGeom = new THREE.SphereGeometry(EARTH_RADIUS + 0.02, 64, 64);
+const cloudMat  = new THREE.MeshPhongMaterial({
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0.3,
+  depthWrite: false
+});
+const cloudMesh = new THREE.Mesh(cloudGeom, cloudMat);
+scene.add(cloudMesh);
+
+/* ---------- Procedural star dome ---------- */
+const starCount = 3000;
+const starPos = [];
+for (let i = 0; i < starCount; i++) {
+  const v = new THREE.Vector3().randomDirection().multiplyScalar(500);
+  starPos.push(v.x, v.y, v.z);
 }
+const starGeom = new THREE.BufferGeometry();
+starGeom.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.7 });
+scene.add(new THREE.Points(starGeom, starMat));
 
-/* Mini game */
-function startGame() {
-  currentGame = gameCountries[Math.floor(Math.random() * gameCountries.length)];
-  showBubble(`🎲 Find ${currentGame.name}! Click it on the globe.`);
-}
+/* ---------- Lights ---------- */
+scene.add(new THREE.AmbientLight(0x333333));
+const sun = new THREE.DirectionalLight(0xffffff, 1.8);
+sun.position.set(5, 3, 5);
+scene.add(sun);
 
-/* Click handler */
-export function handleClick(event) {
-  const pointer = new THREE.Vector2(
-    (event.clientX / window.innerWidth) * 2 - 1,
-    -(event.clientY / window.innerHeight) * 2 + 1
-  );
-  const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(pointer, camera);
-  const intersects = raycaster.intersectObject(earthMesh);
-  if (!intersects.length) return;
+/* ---------- Resize handler ---------- */
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 
-  const point = intersects[0].point.clone().normalize();
-  const lat = 90 - Math.acos(point.y) * 180 / Math.PI;
-  const lon = (Math.atan2(point.z, point.x) * 180 / Math.PI + 180) % 360 - 180;
+/* ---------- Render loop ---------- */
+renderer.setAnimationLoop(() => {
+  controls.update();
+  renderer.render(scene, camera);
+});
 
-  if (currentGame) {
-    const d = latLonToVector3(lat, lon)
-                .distanceTo(latLonToVector3(currentGame.lat, currentGame.lon));
-    if (d < 0.35) { // ~500 km tolerance
-      showBubble(`🎉 You found ${currentGame.name}!`);
-      currentGame = null;
-    } else {
-      showBubble(`Not quite! Try again.`);
-    }
-    return;
-  }
-
-  /* Fallback: just show coords */
-  showBubble(`You clicked:<br>Lat ${lat.toFixed(1)}°, Lon ${lon.toFixed(1)}°`);
-}
-
-/* Bubble helper */
-function showBubble(html) {
-  const b = document.getElementById('bubble');
-  document.getElementById('bubbleText').innerHTML = html;
-  b.style.display = 'block';
-}
-document.getElementById('closeBubble').onclick = () => document.getElementById('bubble').style.display='none';
-
-/* Expose game starter */
-window.startGame = startGame;
+/* ---------- Exports ---------- */
+export { scene, camera, renderer, controls, earthGroup, cloudMesh };
