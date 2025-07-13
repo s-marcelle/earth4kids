@@ -1,6 +1,7 @@
 import { earthMesh } from './earth.js';
 
 const gameCountries = [
+  {name:"Trinidad and Tobago", lat:10.69, lon:-61.22},
   {name:"France",      lat:46.2,  lon:2.2},
   {name:"Brazil",      lat:-14.2, lon:-51.9},
   {name:"Japan",       lat:36.2,  lon:138.2},
