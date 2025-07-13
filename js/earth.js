@@ -1,5 +1,5 @@
-import * as THREE from './three.min.js';
-import { OrbitControls } from './OrbitControls.js';
+import * as THREE from './libs/three.min.js';
+import { OrbitControls } from './libs/OrbitControls.js';
 
 /* 1. Geo helper – VERY small JSON outline (degrees → radians) */
 const DEG = Math.PI / 180;
