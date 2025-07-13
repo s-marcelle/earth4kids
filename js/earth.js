@@ -1,7 +1,7 @@
 /* earth.js – 100 % local, image-free, procedural globe & stars
    Copyright (c) 2025 Sherwin Marcelle, MIT License */
 
-import * as THREE from '../libs/three.min.js';
+import * as THREE from '../libs/three.js';
 import { OrbitControls } from '../libs/OrbitControls.js';
 
 /* ---------- 1.  Low-poly land polygons (lat, lon) ---------- */
