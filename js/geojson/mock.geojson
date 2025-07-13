@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Trinidad and Tobago",
+        "capital": "Port of Spain",
+        "population": 1524000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-61.95, 11.05],
+          [-60.85, 11.05],
+          [-60.85, 10.05],
+          [-61.95, 10.05],
+          [-61.95, 11.05]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Atlantis",
+        "capital": "Bubble City",
+        "population": 42
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0, 0]
+      }
+    }
+  ]
+}
