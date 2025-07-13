@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Earth Explorer – For Kids!</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <!-- Google font for friendly look -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    html,body{margin:0;height:100%;background:#001a33;font-family:Fredoka,Arial,sans-serif;overflow:hidden;color:#fff}
+    #info{position:absolute;top:12px;left:12px;font-size:14px;pointer-events:none;text-shadow:0 0 4px #000}
+    #panel{position:absolute;top:12px;right:12px;z-index:10;display:flex;flex-direction:column;gap:6px}
+    button{
+      padding:8px 12px;border:none;border-radius:20px;font-size:14px;cursor:pointer;background:#ff6b6b;color:#fff;font-weight:600
+    }
+    button:hover{background:#ff8e8e}
+    #bubble{
+      position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+      max-width:280px;background:#ffffffe6;color:#000;border-radius:12px;padding:12px;font-size:16px;
+      display:none;text-align:center;box-shadow:0 0 8px #00000055
+    }
+    #closeBubble{float:right;font-weight:bold;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div id="info">🌍 <strong>Earth Explorer</strong><br>Drag to spin • Scroll to zoom • Click a country!</div>
+
+  <div id="panel">
+    <button id="btnLights">🌃 Toggle Night Lights</button>
+    <button id="btnClouds">☁️ Toggle Clouds</button>
+    <button id="btnGame">🎲 Find a Country!</button>
+  </div>
+
+  <div id="bubble">
+    <span id="closeBubble">✖</span>
+    <div id="bubbleText"></div>
+  </div>
+
+  <!-- Three.js stable CDN -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.156.0/build/three.module.js",
+      "controls": "https://cdn.jsdelivr.net/npm/three@0.156.0/examples/jsm/controls/OrbitControls.js"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'controls';
+
+    /* ---------- CONFIG ---------- */
+    const ASSETS = {
+      earthMap : 'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg',
+      bumpMap  : 'https://threejs.org/examples/textures/planets/earth_normal_2048.jpg',
+      specMap  : 'https://threejs.org/examples/textures/planets/earth_specular_2048.jpg',
+      nightMap : 'https://threejs.org/examples/textures/planets/earth_lights_2048.jpg',
+      clouds   : 'https://threejs.org/examples/textures/planets/earth_clouds_1024.png',
+      stars    : 'https://threejs.org/examples/textures/2k_stars.jpg'
+    };
+
+    /* ---------- BASIC THREE ---------- */
+    const scene    = new THREE.Scene();
+    const camera   = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(devicePixelRatio);
+    document.body.appendChild(renderer.domElement);
+
+    /* Lights & starfield same as before … */
+    const sun = new THREE.DirectionalLight(0xffffff, 1.8);
+    sun.position.set(5,3,5);
+    scene.add(sun);
+    scene.add(new THREE.AmbientLight(0x222244));
+
+    const loader = new THREE.TextureLoader();
+    const starSphere = new THREE.Mesh(
+      new THREE.SphereGeometry(500,64,64),
+      new THREE.MeshBasicMaterial({ map: loader.load(ASSETS.stars), side: THREE.BackSide })
+    );
+    scene.add(starSphere);
+
+    /* ---------- EARTH GROUP ---------- */
+    const earthGroup = new THREE.Group(); scene.add(earthGroup);
+
+    const earthMat = new THREE.MeshPhongMaterial({
+      map: loader.load(ASSETS.earthMap),
+      bumpMap: loader.load(ASSETS.bumpMap), bumpScale: 0.05,
+      specularMap: loader.load(ASSETS.specMap), specular: new THREE.Color(0x666666)
+    });
+    const earthMesh = new THREE.Mesh(new THREE.SphereGeometry(2,64,64), earthMat);
+    earthMesh.name = 'earth';
+    earthGroup.add(earthMesh);
+
+    const nightMat = new THREE.MeshBasicMaterial({
+      map: loader.load(ASSETS.nightMap), blending: THREE.AdditiveBlending, opacity: 1
+    });
+    const nightMesh = new THREE.Mesh(new THREE.SphereGeometry(2.001,64,64), nightMat);
+    earthGroup.add(nightMesh);
+
+    const cloudMat = new THREE.MeshPhongMaterial({
+      map: loader.load(ASSETS.clouds), transparent: true, opacity: 0.8, depthWrite: false
+    });
+    const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(2.02,64,64), cloudMat);
+    cloudMesh.name = 'clouds';
+    earthGroup.add(cloudMesh);
+
+    /* ---------- CAMERA & CONTROLS ---------- */
+    camera.position.set(0,0,6);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.minDistance = 3;
+    controls.maxDistance = 20;
+
+    /* ---------- RESTCOUNTRIES + SPEECH ---------- */
+    async function countryFromLatLon(lat, lon){
+      const url = `https://restcountries.com/v3.1/alpha?codes=${lat},${lon}&fields=name,capital,population,flags`;
+      // RESTCountries actually uses reverse geocoding endpoint for lat/lon
+      const res = await fetch(`https://restcountries.com/v3.1/alpha/${lat},${lon}`);
+      if(!res.ok) return {name:"Ocean",fact:"This looks like open water!"};
+      const data = await res.json();
+      const c = data[0];
+      return {
+        name: c.name.common,
+        capital: c.capital?.[0] || "—",
+        population: c.population.toLocaleString(),
+        flag: c.flags.png,
+        fact: `${c.name.common} has about ${c.population.toLocaleString()} people and its capital is ${c.capital?.[0] || "a mystery"}.`
+      };
+    }
+
+    function speak(text){
+      if(!speechSynthesis) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 0.85;
+      utter.pitch = 1.1;
+      speechSynthesis.speak(utter);
+    }
+
+    /* ---------- BUBBLE ---------- */
+    const bubble = document.getElementById('bubble');
+    const bubbleText = document.getElementById('bubbleText');
+    document.getElementById('closeBubble').onclick = () => bubble.style.display='none';
+
+    /* ---------- CLICK ON EARTH ---------- */
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    async function onClick(event){
+      pointer.x = (event.clientX/innerWidth)*2-1;
+      pointer.y = -(event.clientY/innerHeight)*2+1;
+      raycaster.setFromCamera(pointer,camera);
+      const intersects = raycaster.intersectObject(earthMesh);
+      if(!intersects.length) return;
+
+      const point = intersects[0].point.clone().normalize().multiplyScalar(2);
+      const lat = (90 - Math.acos(point.y/2) * 180/Math.PI).toFixed(2);
+      const lon = ((Math.atan2(point.z, point.x) * 180/Math.PI + 180) % 360 - 180).toFixed(2);
+
+      const country = await countryFromLatLon(lat, lon);
+      bubbleText.innerHTML = `<img src="${country.flag}" width="36" style="vertical-align:middle;margin-right:6px;border-radius:4px">${country.fact}`;
+      bubble.style.display = 'block';
+      speak(country.fact);
+    }
+    window.addEventListener('click', onClick);
+
+    /* ---------- SIMPLE GAME ---------- */
+    const gameCountries = [
+      {name:"France",lat:46.2,lon:2.2},
+      {name:"Brazil",lat:-14.2,lon:-51.9},
+      {name:"Japan",lat:36.2,lon:138.2},
+      {name:"Kenya",lat:-0.02,lon:37.9},
+      {name:"Canada",lat:56.1,lon:-106.3}
+    ];
+    let currentGame = null;
+
+    function startGame(){
+      currentGame = gameCountries[Math.floor(Math.random()*gameCountries.length)];
+      bubbleText.textContent = `🎲 Find ${currentGame.name}! Click it on the globe.`;
+      bubble.style.display = 'block';
+      speak(`Find ${currentGame.name} on the globe!`);
+    }
+    document.getElementById('btnGame').onclick = startGame;
+
+    /* ---------- ANIMATION ---------- */
+    const clock = new THREE.Clock();
+    function animate(){
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      earthMesh.rotation.y = nightMesh.rotation.y = t*0.05;
+      cloudMesh.rotation.y = t*0.07;
+      cloudMat.opacity = 0.7 + 0.15*Math.sin(t*0.8);
+      controls.update();
+      renderer.render(scene,camera);
+    }
+    animate();
+
+    /* ---------- UI BUTTONS ---------- */
+    document.getElementById('btnLights').onclick = ()=> nightMesh.visible=!nightMesh.visible;
+    document.getElementById('btnClouds').onclick = ()=> cloudMesh.visible=!cloudMesh.visible;
+
+    /* ---------- RESIZE ---------- */
+    window.addEventListener('resize',()=>{
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth,innerHeight);
+    });
+  </script>
+</body>
+</html>
