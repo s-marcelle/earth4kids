@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.156.0/build/three.module.js';
+import * as THREE from 'https://esm.sh/three';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.156.0/examples/jsm/controls/OrbitControls.js';
 
 /* 1. Geo helper – VERY small JSON outline (degrees → radians) */
