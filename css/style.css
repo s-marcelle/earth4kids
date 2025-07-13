@@ -1,0 +1,15 @@
+/* Kid-friendly palette */
+:root {
+  --bg: #001a33;
+  --panel: #ff6b6b;
+  --text: #fff;
+  --bubble: #ffffffe6;
+}
+
+html,body{margin:0;height:100%;background:var(--bg);font-family:Fredoka,Arial,sans-serif;color:var(--text);overflow:hidden}
+#info{position:absolute;top:12px;left:12px;font-size:15px;pointer-events:none;text-shadow:0 0 4px #000}
+#panel{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:8px;z-index:10}
+button{padding:10px 14px;border:none;border-radius:22px;font-size:15px;font-weight:600;background:var(--panel);color:var(--text);cursor:pointer}
+button:hover{filter:brightness(1.15)}
+#bubble{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);max-width:280px;background:var(--bubble);color:#000;border-radius:12px;padding:12px;font-size:16px;display:none;text-align:center;box-shadow:0 0 8px #00000055}
+#closeBubble{float:right;font-weight:bold;cursor:pointer;margin-left:6px}
