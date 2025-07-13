@@ -1,6 +1,6 @@
 # 🌍 Earth Explorer – Kids Edition [W.I.P]
 
-A single HTML file that runs an interactive 3-D Earth in any modern browser.  
+An interactive 3-D Earth  
 Designed for children aged 7–10 to learn geography through play.
 
 ## 📄 License
