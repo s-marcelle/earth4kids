@@ -1,5 +1,5 @@
-import * as THREE from 'https://cdn.skypack.dev/three';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.156.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from './three.min.js';
+import { OrbitControls } from './OrbitControls.js';
 
 /* 1. Geo helper – VERY small JSON outline (degrees → radians) */
 const DEG = Math.PI / 180;
