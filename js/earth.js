@@ -3,6 +3,7 @@
 
 import * as THREE from '../libs/three.js';
 import { OrbitControls } from '../libs/OrbitControls.js';
+import GeoJSONGeometry from '../js/GeoJSONGeometry.js';
 
 /* ---------- 1.  Setup ---------- */
 const scene    = new THREE.Scene();
