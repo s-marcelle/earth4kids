@@ -20,7 +20,8 @@ controls.maxDistance = 15;
 
 /* ---------- Build the Earth ---------- */
 const earthRadius = 2;
-const earthMesh = buildEarth(earthRadius, camera, scene);
+const earthMesh   = await buildEarthMesh(earthRadius);
+scene.add(earthMesh);
 
 /* ---------- Clouds ---------- */
 const cloudGeom = new THREE.SphereGeometry(earthRadius + 0.02, 64, 64);
@@ -51,6 +52,11 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
+window.toggleLights = () => {
+  const canvas = document.querySelector('canvas');
+  canvas.style.filter = canvas.style.filter ? '' : 'brightness(0.7) contrast(1.3)';
+};
+window.toggleClouds = () => cloudMesh.visible = !cloudMesh.visible;
 
 /* ---------- Export everything index.html expects ---------- */
 export { scene, camera, renderer, controls, earthMesh, cloudMesh };
