@@ -6,7 +6,7 @@ import * as THREE from '../libs/three.js';
 /* ---------- 1.  Build Earth mesh (land + ocean) ---------- */
 export async function buildEarthMesh(radius) {
   // 1.1 load world-atlas TopoJSON
-  const res = await fetch('/earth4kids/geojson/countries-110m.json');
+  const res = await fetch('https://s-marcelle.github.io/earth4kids/geojson/countries-110m.json');
   const data  = await res.json();
   const world = topojson.feature(data, data.objects.countries);
 
