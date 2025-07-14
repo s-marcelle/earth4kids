@@ -1,9 +1,9 @@
-/* main.js – orchestrates everything, exports nothing
+/* main.js – orchestrates everything
    Copyright (c) 2025 Sherwin Marcelle, MIT License */
 
 import * as THREE from '../libs/three.js';
 import { OrbitControls } from '../libs/OrbitControls.js';
-import { buildEarth } from './globe.js';   // ← factory function
+import { buildEarth } from './globe.js';
 
 /* ---------- Scene ---------- */
 const scene    = new THREE.Scene();
@@ -20,7 +20,7 @@ controls.maxDistance = 15;
 
 /* ---------- Build the Earth ---------- */
 const earthRadius = 2;
-buildEarth(earthRadius, camera, scene);
+const earthMesh = buildEarth(earthRadius, camera, scene);
 
 /* ---------- Clouds ---------- */
 const cloudGeom = new THREE.SphereGeometry(earthRadius + 0.02, 64, 64);
@@ -51,14 +51,6 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
-window.toggleLights = () => {
-  const canvas = document.querySelector('canvas');
-  canvas.style.filter = canvas.style.filter ? '' : 'brightness(0.7) contrast(1.3)';
-};
-window.toggleClouds = () => cloudMesh.visible = !cloudMesh.visible;
 
-/* ---------- Render loop ---------- */
-renderer.setAnimationLoop(() => {
-  controls.update();
-  renderer.render(scene, camera);
-});
+/* ---------- Export everything index.html expects ---------- */
+export { scene, camera, renderer, controls, earthMesh, cloudMesh };
