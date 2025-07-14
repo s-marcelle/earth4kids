@@ -10,7 +10,7 @@ export function buildEarth(radius, camera, scene) {
   scene.add(new THREE.Mesh(oceanGeom, oceanMat));
 
   /* 2. Load landmasses */
-  fetch('../geojson/countries-110m.json')
+  fetch('/earth4kids/geojson/countries-110m.json')
     .then(r => r.json())
     .then(data => {
       const world = topojson.feature(data, data.objects.countries);
