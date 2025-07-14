@@ -3,7 +3,7 @@
 
 import * as THREE from '../libs/three.js';
 import { OrbitControls } from '../libs/OrbitControls.js';
-import { buildEarth } from './globe.js';
+import { buildEarthMesh } from './globe.js';
 
 /* ---------- Scene ---------- */
 const scene    = new THREE.Scene();
