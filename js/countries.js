@@ -94,3 +94,4 @@ function showBubble(props) {
       bubble.style.display = 'block';
     });
 }
+export { handleClick };
