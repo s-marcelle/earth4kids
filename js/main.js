@@ -1,9 +1,9 @@
-/* main.js – full interactive Earth, exports earthGroup
+/* main.js – orchestrates everything, exports nothing
    Copyright (c) 2025 Sherwin Marcelle, MIT License */
 
 import * as THREE from '../libs/three.js';
 import { OrbitControls } from '../libs/OrbitControls.js';
-import { buildEarthMesh } from './countries.js';
+import { buildEarth } from './globe.js';   // ← factory function
 
 /* ---------- Scene ---------- */
 const scene    = new THREE.Scene();
@@ -18,18 +18,17 @@ controls.enableDamping = true;
 controls.minDistance = 3;
 controls.maxDistance = 15;
 
-/* ---------- Earth & clouds ---------- */
-const earthGroup = new THREE.Group();
-scene.add(earthGroup);
+/* ---------- Build the Earth ---------- */
+const earthRadius = 2;
+buildEarth(earthRadius, camera, scene);
 
-buildEarthMesh(2).then(group => earthGroup.add(group));
-
-const cloudGeom = new THREE.SphereGeometry(2.02, 64, 64);
+/* ---------- Clouds ---------- */
+const cloudGeom = new THREE.SphereGeometry(earthRadius + 0.02, 64, 64);
 const cloudMat  = new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
 const cloudMesh = new THREE.Mesh(cloudGeom, cloudMat);
 scene.add(cloudMesh);
 
-/* ---------- Procedural star dome ---------- */
+/* ---------- Procedural stars ---------- */
 const starCount = 3000;
 const starPos = [];
 for (let i = 0; i < starCount; i++) {
@@ -46,25 +45,20 @@ const sun = new THREE.DirectionalLight(0xffffff, 1.8);
 sun.position.set(5, 3, 5);
 scene.add(sun);
 
-/* ---------- Resize ---------- */
+/* ---------- Resize & UI ---------- */
 window.addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
-
-/* ---------- Render loop ---------- */
-renderer.setAnimationLoop(() => {
-  controls.update();
-  renderer.render(scene, camera);
-});
-
-/* ---------- UI helpers ---------- */
 window.toggleLights = () => {
   const canvas = document.querySelector('canvas');
   canvas.style.filter = canvas.style.filter ? '' : 'brightness(0.7) contrast(1.3)';
 };
 window.toggleClouds = () => cloudMesh.visible = !cloudMesh.visible;
 
-/* ---------- Exports ---------- */
-export { scene, camera, renderer, controls, earthGroup, cloudMesh };
+/* ---------- Render loop ---------- */
+renderer.setAnimationLoop(() => {
+  controls.update();
+  renderer.render(scene, camera);
+});
