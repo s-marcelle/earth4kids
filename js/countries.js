@@ -2,6 +2,7 @@
    Copyright (c) 2025 Sherwin Marcelle, MIT License */
 
 import * as THREE from '../libs/three.js';
+import { camera } from './main.js';
 
 /* ---------- 1.  Build Earth mesh (land + ocean) ---------- */
 export async function buildEarthMesh(radius) {
