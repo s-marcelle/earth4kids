@@ -31,33 +31,19 @@ export async function buildEarthMesh(radius) {
           else           shape.lineTo(x, y);
         });
 
-        const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.01, bevelEnabled: false });
-        const mat  = new THREE.MeshBasicMaterial({ color: colour, side: THREE.DoubleSide });
+        const geom = new THREE.ExtrudeGeometry(shape, {
+          depth: 0.01,
+          bevelEnabled: false
+        });
+        const mat  = new THREE.MeshBasicMaterial({
+          color: colour,
+          side: THREE.DoubleSide
+        });
         const mesh = new THREE.Mesh(geom, mat);
         mesh.userData = props; // keep country info for click
         group.add(mesh);
       });
     });
-  });
-
-  /* 1.4 Ray-mesh click handler */
-  const raycaster = new THREE.Raycaster();
-  const pointer   = new THREE.Vector2();
-
-  window.addEventListener('click', (event) => {
-    if (!group.parent) return;
-
-    // convert mouse to NDC
-    pointer.x = (event.clientX / innerWidth) * 2 - 1;
-    pointer.y = -(event.clientY / innerHeight) * 2 + 1;
-
-    raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(group.children);
-
-    if (intersects.length) {
-      const props = intersects[0].object.userData;
-      showBubble(props);
-    }
   });
 
   return group;
@@ -94,4 +80,30 @@ function showBubble(props) {
       bubble.style.display = 'block';
     });
 }
-export { handleClick };
+
+/* ---------- 4.  Click handler for index.html ---------- */
+export function handleClick(event) {
+  // These objects are now available via the ES-module imports in the HTML.
+  const { camera, scene } = window;  // or import them if you prefer
+  if (!camera || !scene) return;
+
+  const raycaster = new THREE.Raycaster();
+  const pointer   = new THREE.Vector2();
+
+  pointer.x = (event.clientX / innerWidth) * 2 - 1;
+  pointer.y = -(event.clientY / innerHeight) * 2 + 1;
+
+  // find the group created by buildEarthMesh
+  const earthGroup = scene.children.find(
+    child => child.type === 'Group' && child.children.length > 1
+  );
+  if (!earthGroup) return;
+
+  raycaster.setFromCamera(pointer, camera);
+  const intersects = raycaster.intersectObjects(earthGroup.children);
+
+  if (intersects.length) {
+    const props = intersects[0].object.userData;
+    showBubble(props);
+  }
+}
